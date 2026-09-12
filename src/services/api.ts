@@ -233,21 +233,57 @@ class ApiClient {
     if (params?.outOfStock) searchParams.set('outOfStock', 'true');
     if (params?.active !== undefined) searchParams.set('active', String(params.active));
 
-    return this.request(`/products?${searchParams.toString()}`);
+    try {
+      const serverProds = await this.request<Product[]>(`/products?${searchParams.toString()}`);
+      if (Array.isArray(serverProds)) {
+        try {
+          const cachedRaw = localStorage.getItem('entrecopos_cached_products');
+          const cachedMap: Record<string, Product> = cachedRaw ? JSON.parse(cachedRaw) : {};
+          serverProds.forEach((p) => {
+            cachedMap[p.id] = p;
+          });
+          localStorage.setItem('entrecopos_cached_products', JSON.stringify(cachedMap));
+        } catch {}
+      }
+      return serverProds;
+    } catch (err) {
+      try {
+        const cachedRaw = localStorage.getItem('entrecopos_cached_products');
+        if (cachedRaw) {
+          const cachedMap: Record<string, Product> = JSON.parse(cachedRaw);
+          return Object.values(cachedMap);
+        }
+      } catch {}
+      throw err;
+    }
   }
 
   async createProduct(data: Partial<Product>): Promise<Product> {
-    return this.request('/products', {
+    const prod = await this.request<Product>('/products', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    try {
+      const cachedRaw = localStorage.getItem('entrecopos_cached_products');
+      const cachedMap: Record<string, Product> = cachedRaw ? JSON.parse(cachedRaw) : {};
+      cachedMap[prod.id] = prod;
+      localStorage.setItem('entrecopos_cached_products', JSON.stringify(cachedMap));
+    } catch {}
+    return prod;
   }
 
   async updateProduct(id: string, data: Partial<Product>): Promise<Product> {
-    return this.request(`/products/${id}`, {
+    const prod = await this.request<Product>(`/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    try {
+      const cachedRaw = localStorage.getItem('entrecopos_cached_products');
+      const cachedMap: Record<string, Product> = cachedRaw ? JSON.parse(cachedRaw) : {};
+      cachedMap[prod.id] = prod;
+      localStorage.setItem('entrecopos_cached_products', JSON.stringify(cachedMap));
+    } catch {}
+    return prod;
   }
 
   // Stock
@@ -326,7 +362,22 @@ class ApiClient {
 
   // Sales (PDV)
   async createSale(data: {
-    items: { productId: string; quantity: number }[];
+    items: {
+      productId: string;
+      quantity: number;
+      name?: string;
+      sellPrice?: number;
+      costPrice?: number;
+      barcode?: string;
+      sku?: string;
+      categoryId?: string;
+      categoryName?: string;
+      brand?: string;
+      unit?: string;
+      currentStock?: number;
+      minStock?: number;
+      product?: Product;
+    }[];
     paymentMethod: string;
     amountPaid?: number;
     discount?: number;

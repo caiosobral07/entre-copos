@@ -167,6 +167,18 @@ export const PdvView: React.FC<{ onNavigateToCaixa?: () => void }> = ({ onNaviga
       const itemsPayload = cart.map((i) => ({
         productId: i.product.id,
         quantity: i.quantity,
+        name: i.product.name,
+        sellPrice: i.product.sellPrice,
+        costPrice: i.product.costPrice,
+        barcode: i.product.barcode,
+        sku: i.product.sku,
+        categoryId: i.product.categoryId,
+        categoryName: i.product.categoryName,
+        brand: i.product.brand,
+        unit: i.product.unit,
+        currentStock: i.product.currentStock,
+        minStock: i.product.minStock,
+        product: i.product,
       }));
 
       const sale = await api.createSale({
