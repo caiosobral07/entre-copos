@@ -1,0 +1,6 @@
+{
+  "name": "Entre Copos Gestão",
+  "description": "Sistema completo de gestão comercial Entre Copos Gestão para conveniências e adegas com PDV, comandas, estoque, caixa, contas a pagar, relatórios e controle de acesso.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
